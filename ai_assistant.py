@@ -3,6 +3,7 @@ import os
 import json
 from openai import OpenAI
 import re
+from email_validator import validate_email, EmailNotValidError
 
 api_key = os.getenv("NVIDIA_API_KEY")
 
@@ -81,7 +82,7 @@ if not st.session_state.logged_in:
             st.session_state.selected_chat_index = None
             st.session_state.generated_questions = []
             st.session_state.candidate_info = {}
-            st.rerun()
+            st.experimental_rerun()
         else:
             st.error("Invalid credentials!, SIGNUP TO USE")
     st.stop()
@@ -93,7 +94,7 @@ if st.sidebar.button("Logout"):
     st.session_state.selected_chat_index = None
     st.session_state.generated_questions = []
     st.session_state.candidate_info = {}
-    st.rerun()
+    st.experimental_rerun()
 
 if st.session_state.username not in chats:
     chats[st.session_state.username] = []
@@ -106,7 +107,7 @@ if st.sidebar.button("Create Chat"):
         st.session_state.selected_chat_index = len(chats[st.session_state.username]) - 1
         st.session_state.generated_questions = []
         st.session_state.candidate_info = {}
-        st.rerun()
+        st.experimental_rerun()
     else:
         st.sidebar.warning("Please enter a name for the chat.")
 
@@ -116,7 +117,7 @@ for i, chat in enumerate(chats[st.session_state.username]):
         if st.sidebar.button(chat["name"], key=f"chat_{i}"):
             st.session_state.selected_chat_index = i
             st.session_state.generated_questions = chat.get("questions", [])
-            st.rerun()
+            st.experimental_rerun()
 
 if st.sidebar.button("Delete Chat"):
     if "selected_chat_index" in st.session_state and st.session_state.selected_chat_index is not None:
@@ -125,7 +126,7 @@ if st.sidebar.button("Delete Chat"):
         st.session_state.selected_chat_index = None
         st.session_state.generated_questions = []
         st.session_state.candidate_info = {}
-        st.rerun()
+        st.experimental_rerun()
     else:
         st.sidebar.warning("No chat selected.")
 
@@ -136,7 +137,19 @@ if "candidate_info" not in st.session_state:
     st.session_state.candidate_info = {}
 
 for key in ["name", "email", "phone", "experience", "position", "location", "tech_stack"]:
-    st.session_state.candidate_info[key] = st.text_input(key.replace("_", " ").title(), value=st.session_state.candidate_info.get(key, ""))
+    value = st.text_input(key.replace("_", " ").title(), value=st.session_state.candidate_info.get(key, ""))
+
+    if key=="email" and value:
+        try:
+            validate_email(value)  # Validate email
+        except EmailNotValidError:
+            st.error("Invalid Email ID! Please enter a correct email.")
+
+    if key=="phone" and value:
+        if len(value)!=10 or not value.isdigit():
+            st.error("Invalid Phone number!, Please enter the correct Phone number")
+    st.session_state.candidate_info[key]=value
+
 
 if st.button("Generate Technical Questions"):
     tech_stack = st.session_state.candidate_info.get("tech_stack", "").strip()
