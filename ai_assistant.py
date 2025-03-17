@@ -4,10 +4,8 @@ import json
 from openai import OpenAI
 import re
 
-# Fetch the API key from environment variables
 api_key = os.getenv("NVIDIA_API_KEY")
 
-# Simulated database for user authentication
 USER_DB = "users.json"
 CHAT_DB = "chats.json"
 
@@ -55,11 +53,9 @@ def get_ai_response(messages):
 users = load_users()
 chats = load_chats()
 
-# Streamlit UI Setup
 st.set_page_config(layout="wide")
 st.title("TalentScout Hiring Assistant - NVIDIA AI")
 
-# User Authentication
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
@@ -90,7 +86,6 @@ if not st.session_state.logged_in:
             st.error("Invalid credentials!, SIGNUP TO USE")
     st.stop()
 
-# User logged in
 st.sidebar.write(f"Logged in as: {st.session_state.username}")
 if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
@@ -100,11 +95,9 @@ if st.sidebar.button("Logout"):
     st.session_state.candidate_info = {}
     st.rerun()
 
-# Ensure user has chat sessions
 if st.session_state.username not in chats:
     chats[st.session_state.username] = []
 
-# Create New Chat
 chat_name = st.sidebar.text_input("Enter Chat Name")
 if st.sidebar.button("Create Chat"):
     if chat_name:
@@ -125,7 +118,6 @@ for i, chat in enumerate(chats[st.session_state.username]):
             st.session_state.generated_questions = chat.get("questions", [])
             st.rerun()
 
-# Handle Chat Deletion
 if st.sidebar.button("Delete Chat"):
     if "selected_chat_index" in st.session_state and st.session_state.selected_chat_index is not None:
         del chats[st.session_state.username][st.session_state.selected_chat_index]
@@ -146,7 +138,6 @@ if "candidate_info" not in st.session_state:
 for key in ["name", "email", "phone", "experience", "position", "location", "tech_stack"]:
     st.session_state.candidate_info[key] = st.text_input(key.replace("_", " ").title(), value=st.session_state.candidate_info.get(key, ""))
 
-# Generate technical interview questions
 if st.button("Generate Technical Questions"):
     tech_stack = st.session_state.candidate_info.get("tech_stack", "").strip()
     role = st.session_state.candidate_info.get("position", "").strip()
@@ -170,7 +161,6 @@ st.write("### Technical Questions")
 for q in st.session_state.generated_questions:
     st.write(q)
 
-# Chatbot for doubts
 st.subheader("Doubts Clarification")
 doubt_query = st.text_area("Ask your doubts")
 if st.button("Submit Doubt"):
